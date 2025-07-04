@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject var viewModel = ServerViewModel()
     @StateObject private var networkInterfaceViewModel = NetworkInterfaceViewModel()
+    @State private var showingCopyConfirmation = false
     var body: some View {
         VStack(spacing: 20){
             Text(viewModel.isRuning ? "SOCKS 서버 실행중" : "서버 꺼짐")
@@ -20,13 +21,24 @@ struct ContentView: View {
             }
             
             NavigationView{
-//                ##div:has(> div > :is(div, span) > a[href="#s-3"])
                 List(networkInterfaceViewModel.interfaces){iface in
                     VStack(alignment: .leading) {
                         Text("Name: \(iface.name)").font(.headline)
-                        Text("Address: \(iface.address)").font(.subheadline).foregroundColor(.secondary)
+                        Text("Address: \(iface.address)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .onLongPressGesture {
+                                UIPasteboard.general.string = iface.address
+                                showingCopyConfirmation = true
+                            }
                     }
                 }
+            }
+            .navigationTitle("Network Interfaces")
+            .alert("Address Copied", isPresented: $showingCopyConfirmation) {
+                    Button("OK", role: .cancel) { }
+            } message: {
+                Text("The address has been copied to your clipboard.")
             }
         }.padding()
     }

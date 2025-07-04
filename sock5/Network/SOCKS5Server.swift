@@ -10,7 +10,7 @@ class SOCKS5Server {
     private var listener: NWListener?
     func start () {
         do {
-            listener = try NWListener(using: .tcp, on: 1080)
+            listener = try NWListener(using: .tcp, on: 8081)
             
             listener?.newConnectionHandler = { connection in
                 let handler = SOCKS5Cunnection(connection: connection)

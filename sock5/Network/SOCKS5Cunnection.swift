@@ -17,6 +17,10 @@ class SOCKS5Cunnection {
     
     init(connection: NWConnection) {
         self.connection = connection
+        
+        self.connection.stateUpdateHandler = { state in
+                print("[self.connection.stateUpdateHandler=\(state)]")
+        }
     }
     
     func start() {
@@ -45,8 +49,13 @@ class SOCKS5Cunnection {
     private func sendServerChoice(ok: Bool){
         print("[sendServerChoice] ok:\(ok)")
         if ok{
-            self.connection.send(content: Data([0x05, 0x00]), completion: .contentProcessed{_ in
-                self.receiveClientConnectionRequest()
+            self.connection.send(content: Data([0x05, 0x00]), completion: .contentProcessed{error in
+                if let error = error {
+                    print("Error sending server choice: \(error)")
+                } else {
+                    print("no Error")
+                    self.receiveClientConnectionRequest()
+                }
             })
         } else {
             self.connection.send(content: Data([0x05, 0xFF]), completion: .contentProcessed{_ in
@@ -56,6 +65,7 @@ class SOCKS5Cunnection {
     }
     
     private func receiveClientConnectionRequest(){
+        print("[receiveClientConnectionRequest]")
         self.connection.receive(minimumIncompleteLength: 2, maximumLength: 512) {(data, _, _, error:NWError?) in
             guard let data = data, error == nil else { return }
             print("[receiveClientConnectionRequest] 요청 수신 (\(data)) hex: \(data.map{String(format: "%02x", $0)})")
